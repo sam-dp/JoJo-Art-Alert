@@ -36,15 +36,40 @@ writer = csv.writer(file)
 writer.writerow(["ARTWORK", "DATE", "SOURCE TITLE", "SOURCE IMAGE"])
 
 for entry in entries :
-    images = entry.find_all("img")
-    imgList = []
-    for image in images :
-        src = image.get('src')
-        alt = image.get('alt')
-        imgList.append("src: " + src + "\nalt: " + alt)
-    writer.writerow([formatImgList(imgList), "date", "source title", "source image"])
+    sections = entry.find_all("td", {"class":"volume"})
+    artworkList = []
+    date = ""
+    sourceTitle = ""
+    sourceImgList = []
+    sectionCounter = 1
 
-    
+    for section in sections :
+
+        images = section.find_all("img")
+        for image in images :
+            src = image.get('src')
+            alt = image.get('alt')
+            if(sectionCounter == 1) :
+                artworkList.append("src: " + src + "\nalt: " + alt)
+            elif(sectionCounter == 4) :
+                sourceImgList.append("src: " + src + "\nalt: " + alt)
+
+        textContent = section.find("center")
+        for string in textContent.strings :
+            if(sectionCounter == 2) :
+                date += string
+                hasScrapedText = True
+            elif(sectionCounter == 3) :
+                sourceTitle += string
+                
+        sectionCounter += 1
+        
+        
+               
+
+    writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
+
+
 file.close()
 
 
