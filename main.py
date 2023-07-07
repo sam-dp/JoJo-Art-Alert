@@ -7,12 +7,11 @@ import csv
     # alt: <link>
 def formatImgList(list) :
     formattedStr = ""
-
+    
     for string in list :
         formattedStr += string
         formattedStr += "\n"
 
-    print(formattedStr)
     return formattedStr
 
 # GET Request
@@ -30,7 +29,7 @@ div = soup.find("div", {"class":"phantom-blood-tabs"})
 entries = div.find_all("table", {"class":"diamonds volume"})
 
 # Write to csv
-file = open("entries.csv", "w")
+file = open("entries.csv", "w", encoding='utf-8')
 writer = csv.writer(file)
 
 writer.writerow(["ARTWORK", "DATE", "SOURCE TITLE", "SOURCE IMAGE"])
@@ -61,7 +60,7 @@ for entry in entries :
                 hasScrapedText = True
             elif(sectionCounter == 3) :
                 sourceTitle += string
-                
+
         sectionCounter += 1
         
         
