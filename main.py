@@ -1,87 +1,93 @@
-import requests
 from bs4 import BeautifulSoup
+import requests
 import csv
-
-# Formats image lists into multi-line strings for csv formatting:
-    # src: <link>
-    # alt: <link>
-def formatImgList(list) :
-    formattedStr = ""
-    
-    for string in list :
-        formattedStr += string
-        formattedStr += "\n"
-
-    return formattedStr
 
 # GET Request
 URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
 page = requests.get( URL )
 
-
 # Check for successful status code (200)
-print(page.status_code)
-
+print("Status Code - {}".format(page.status_code))
 
 # HTML Parser
 soup = BeautifulSoup(page.content, 'html.parser')
 div = soup.find("div", {"class":"phantom-blood-tabs"})
 entries = div.find_all("table", {"class":"diamonds volume"})
 
-# Write to csv
-file = open("entries.csv", "w", encoding='utf-8')
-writer = csv.writer(file)
 
-writer.writerow(["ARTWORK", "DATE", "SOURCE TITLE", "SOURCE IMAGE"])
+#############
+# FUNCTIONS #
+#############
 
-for entry in entries :
-    sections = entry.find_all("td", {"class":"volume"})
-    artworkList = []
-    date = ""
-    sourceTitle = ""
-    sourceImgList = []
-    sectionCounter = 1
+# Formats image lists into multi-line strings for csv formatting:
+    # src: <link>
+    # alt: <link>
+def formatImgList(list) :
+    formattedStr = ""
 
-    for section in sections :
+    for string in list :
+        formattedStr += string
+        formattedStr += "\n"
 
-        images = section.find_all("img")
-        for image in images :
-            src = image.get('src')
-            alt = image.get('alt')
-            if(sectionCounter == 1) :
-                artworkList.append("src: " + src + "\nalt: " + alt)
-            elif(sectionCounter == 4) :
-                sourceImgList.append("src: " + src + "\nalt: " + alt)
+    return formattedStr
 
-        textContent = section.find("center")
-        for string in textContent.strings :
-            if(sectionCounter == 2) :
-                date += string
-                hasScrapedText = True
-            elif(sectionCounter == 3) :
-                sourceTitle += string
 
-        sectionCounter += 1
+# Opens and writes csv file with scraped data from URL
+def updateCSV() :
+
+    # Initialize writer and csv file
+    file = open("entries.csv", "w", newline='', encoding='utf-8')
+    writer = csv.writer(file)
+    writer.writerow(["ARTWORK", "DATE", "SOURCE TITLE", "SOURCE IMAGE"])
+
+    # Scrapes every artwork entry on the page
+    for entry in entries :
+
+        # Initializes each subsection of an artwork entry, containing:
+            # Artwork      (artworkList)
+            # Date         (date)
+            # Original Use (sourceTitle)
+            # Source Image (sourceImgList)
+        sections = entry.find_all("td", {"class":"volume"})
+        artworkList = []
+        date = ""
+        sourceTitle = ""
+        sourceImgList = []
+
+        # Scrapes data in correspondence of each subsection and row of csv, and writes to csv
+        sectionCounter = 1 # Tracks which subsection/column is being viewed
+        for section in sections :
+            
+            # If on a subsection/column containing images (1 and 4), scrape image content
+            if(sectionCounter == 1 or sectionCounter == 4) :
+                images = section.find_all("img") # Image content is stored within <img> tags
+                for image in images :
+                    src = image.get('src')
+                    alt = image.get('alt')
+                    if(sectionCounter == 1) :
+                        artworkList.append("src: " + src + "\nalt: " + alt)
+                    elif(sectionCounter == 4) :
+                        sourceImgList.append("src: " + src + "\nalt: " + alt)
+            # If on a subsection/column containing text (2 and 3), scrape text content
+            elif(sectionCounter == 2 or sectionCounter == 3) :
+                textContent = section.find("center") # Text content is stored within <center> tags
+                for string in textContent.strings :
+                    if(sectionCounter == 2) :
+                        date += string
+                    elif(sectionCounter == 3) :
+                        sourceTitle += string
+
+            # After scraping subsection/column, update tracker to next
+            sectionCounter += 1
         
-        
-               
+        # Writes to csv file, formatting the image lists into a string format
+        writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
 
-    writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
-
-
-file.close()
+    file.close()
 
 
 
 
-# for entry in entries :
-#     images = entry.find_all("img")
-#     imgList = []
-#     for image in images :
-#         src = image.get('src')
-#         alt = image.get('alt')
-#         imgList.append("src: " + src + "\nalt: " + alt)
-#     writer.writerow([formatImgList(imgList), "date", "source title", "source image"])
 
 
 
