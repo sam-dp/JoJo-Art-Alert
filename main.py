@@ -16,6 +16,16 @@ soup = BeautifulSoup(page.content, 'html.parser')
 div = soup.find("div", {"class":"phantom-blood-tabs"})
 entries = div.find_all("table", {"class":"diamonds volume"})
 
+# Write to csv
+file = open("entries.csv", "w")
+writer = csv.writer(file)
+
+writer.writerow(["ARTWORK", "DATE", "SOURCE TITLE", "SOURCE IMAGE"])
+
+
+
+file.close()
+
 
 
 
