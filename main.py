@@ -2,6 +2,11 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 
+import PySimpleGUI as sg
+
+
+# --------------- CSV ---------------- #
+
 # GET Request
 URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
 page = requests.get( URL )
@@ -15,9 +20,9 @@ div = soup.find("div", {"class":"phantom-blood-tabs"})
 entries = div.find_all("table", {"class":"diamonds volume"})
 
 
-#############
-# FUNCTIONS #
-#############
+#################
+# CSV FUNCTIONS #
+#################
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -86,8 +91,13 @@ def updateCSV() :
     file.close()
 
 # On run file, updates CSV
-updateCSV()
+#updateCSV()
 
+
+
+# --------------- GUI ---------------- #
+
+sg.Window(title="JoJo's Art Scraper and Viewer", layout=[[]], size=(1600, 900)).read()
 
 
 
