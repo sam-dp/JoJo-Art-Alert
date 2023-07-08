@@ -48,7 +48,7 @@ def updateCSV() :
             # Date         (date)
             # Original Use (sourceTitle)
             # Source Image (sourceImgList)
-        sections = entry.find_all("td", {"class":"volume"})
+        sections = entry.find_all("td", {"class":"volume"}) # Subsections are stored in <td> tags with class:"volume"
         artworkList = []
         date = ""
         sourceTitle = ""
@@ -58,17 +58,17 @@ def updateCSV() :
         sectionCounter = 1 # Tracks which subsection/column is being viewed
         for section in sections :
             
-            # If on a subsection/column containing images (1 and 4), scrape image content
+            # If on a subsection containing images (1 and 4), scrape image content
             if(sectionCounter == 1 or sectionCounter == 4) :
                 images = section.find_all("img") # Image content is stored within <img> tags
                 for image in images :
                     src = image.get('src')
                     alt = image.get('alt')
                     if(sectionCounter == 1) :
-                        artworkList.append("src: " + src + "\nalt: " + alt)
+                        artworkList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
                     elif(sectionCounter == 4) :
-                        sourceImgList.append("src: " + src + "\nalt: " + alt)
-            # If on a subsection/column containing text (2 and 3), scrape text content
+                        sourceImgList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
+            # If on a subsection containing text (2 and 3), scrape text content
             elif(sectionCounter == 2 or sectionCounter == 3) :
                 textContent = section.find("center") # Text content is stored within <center> tags
                 for string in textContent.strings :
@@ -77,13 +77,16 @@ def updateCSV() :
                     elif(sectionCounter == 3) :
                         sourceTitle += string
 
-            # After scraping subsection/column, update tracker to next
+            # After scraping subsection, update tracker to next
             sectionCounter += 1
         
-        # Writes to csv file, formatting the image lists into a string format
+        # Writes to csv file, formatting the image lists into formatted strings
         writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
 
     file.close()
+
+# On run file, updates CSV
+updateCSV()
 
 
 
