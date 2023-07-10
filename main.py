@@ -5,7 +5,7 @@ import csv
 import PySimpleGUI as sg
 
 
-# --------------- CSV ---------------- #
+# --------------- Scraper ---------------- #
 
 # GET Request
 URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
@@ -20,9 +20,9 @@ div = soup.find("div", {"class":"phantom-blood-tabs"})
 entries = div.find_all("table", {"class":"diamonds volume"})
 
 
-#################
-# CSV FUNCTIONS #
-#################
+#############
+# FUNCTIONS #
+#############
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -97,7 +97,16 @@ def updateCSV() :
 
 # --------------- GUI ---------------- #
 
-sg.Window(title="JoJo's Art Scraper and Viewer", layout=[[]], size=(1600, 900)).read()
+# Window
+window = sg.Window(title="JoJo's Art Scraper and Viewer", layout=[[]], size=(1600, 900))
+
+# Event Loop
+while True :
+    event, values = window.read()
+    if event == sg.WIN_CLOSED :
+        break
+
+window.close()
 
 
 
