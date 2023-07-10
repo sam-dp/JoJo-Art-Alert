@@ -3,7 +3,7 @@ import requests
 import csv
 
 import PySimpleGUI as sg
-
+import os.path
 
 # --------------- Scraper ---------------- #
 
@@ -96,9 +96,41 @@ def updateCSV() :
 
 
 # --------------- GUI ---------------- #
+sg.theme('DarkGrey4')
+
+# Layout
+file_list_column = [
+    [
+        #sg.Text("Entry Folder"),
+        #sg.In(size=(25,1), enable_events = True, key = "-FOLDER-"),
+        
+    ],
+    [
+        sg.Listbox( 
+            values=[], enable_events=True, size=(40,20),
+            key="-FILE LIST-"
+        )
+    ],
+]
+
+image_viewer_column = [
+    [sg.Text("Choose an entry from the list on the left:")], 
+    [sg.Text(size=(40,1), key="-TOUT-")],
+    [sg.Image(key="-IMAGE-")],
+]
+
+layout = [
+    [
+        sg.Column(file_list_column),
+        sg.VSeparator(),
+        sg.Column(image_viewer_column),
+    ]
+
+]
 
 # Window
-window = sg.Window(title="JoJo's Art Scraper and Viewer", layout=[[]], size=(1600, 900))
+window = sg.Window("JoJo's Art Scraper and Viewer", layout)
+
 
 # Event Loop
 while True :
