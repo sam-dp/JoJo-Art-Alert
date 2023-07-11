@@ -4,11 +4,10 @@ import csv
 
 import PySimpleGUI as sg
 
-allArtEntries = []
-
 ##################################################
 # --------------- Class Objects ---------------- #
 ##################################################
+
 
 # artImg object, contains a string for both the source link and the alt text
 class Artwork:
@@ -38,7 +37,14 @@ class ArtEntry:
 # --------------- Scraper Functions ---------------- #
 ######################################################
 
+# List of ArtEntry objects -- containing all scraped art entries and their individual data
+    # allArtEntries[] -> ArtEntry -> artworkList[] -> Artwork -> imgSrc"" 
+    #                             -> date""                   -> imgAlt""
+    #                             -> sourceTitle""
+    #                             -> srcImgList[]  -> Artwork -> imgSrc""
+    #                                                         -> imgAlt""
 allArtEntries = []
+
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -75,8 +81,6 @@ def runScraper() :
     # Scrapes every artwork entry on the page
     for entry in entries :
 
-        artEntryObj = ArtEntry
-
         # Initializes each subsection of an artwork entry, containing:
             # Artwork      (artworkList)
             # Date         (date)
@@ -88,30 +92,44 @@ def runScraper() :
         sourceTitle = ""
         sourceImgList = []
 
-        artworkObj = Artwork(src, alt) # Stores artwork data into Artwork object
-        sourceImgObj = Artwork(src, alt) # Stores source image data into Artwork object
+        artEntryObj = ArtEntry([], "", "", [])
+        artworkObj = Artwork("", "")
+        srcImgObj = Artwork("","")
 
         # Iterates through each subsection and row of csv, and writes to csv with scraped data
         sectionCounter = 1 # Tracks which subsection/column is being viewed
         for section in sections :
+
             
+
             # If on a subsection containing images (1 and 4), scrape image content
             if(sectionCounter == 1 or sectionCounter == 4) :
                 images = section.find_all("img") # Image content is stored within <img> tags
+
                 for image in images :
                     src = image.get('src')
                     alt = image.get('alt')
+
                     if(sectionCounter == 1) :
-                        artworkObj = Artwork(src, alt) # Stores artwork data into Artwork object
-                        artEntryObj.artworkList.append(artworkObj) # Stores the artwork object into the artEntry's list of artworks
+                        # Stores in allArtEntries list
+                        artworkObj = Artwork(src, alt) 
+                        artEntryObj.artworkList.append(artworkObj) 
+
+                        # Stores in CSV
                         artworkList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
+
                     elif(sectionCounter == 4) :
-                        srcImgObj = Artwork(src, alt) # Stores srcImg data into Artwork object
-                        artEntryObj.artworkList.append(artworkObj) # Stores the artwork object into the artEntry's list of artworks
+                        # Stores in allArtEntries list
+                        srcImgObj = Artwork(src, alt) 
+                        artEntryObj.sourceImgList.append(srcImgObj) 
+
+                        # Stores in CSV
                         sourceImgList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
+
             # If on a subsection containing text (2 and 3), scrape text content
             elif(sectionCounter == 2 or sectionCounter == 3) :
                 textContent = section.find("center") # Text content is stored within <center> tags
+
                 for string in textContent.strings :
                     if(sectionCounter == 2) :
                         date += string
@@ -122,8 +140,9 @@ def runScraper() :
             sectionCounter += 1
         
         # Appends artEntry to list allArtEntries
-
-        allArtEntries.append()
+        artEntryObj.date = date
+        artEntryObj.sourceTitle = sourceTitle
+        allArtEntries.append(artEntryObj)
 
         # Writes to csv file, formatting the image lists into formatted strings
         writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
