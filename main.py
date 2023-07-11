@@ -3,8 +3,8 @@ import requests
 import csv
 
 import PySimpleGUI as sg
-import os.path
 
+allArtEntries = []
 
 ##################################################
 # --------------- Class Objects ---------------- #
@@ -21,10 +21,10 @@ class Artwork:
 
 # artEntry object, contains all information of an artwork entry including the artwork links, date, source title, and source image
 class ArtEntry:
-    artworkList = [] # list containing artwork objects
+    artworkList = [] # list containing Artwork objects
     date = ""
     sourceTitle = ""
-    sourceImgList = [] # list of artwork objects (source images)
+    sourceImgList = [] # list of Artwork objects (source images)
     
     def __init__(self, artworkList, date, sourceTitle, sourceImgList) :
         self.artworkList = artworkList
@@ -37,6 +37,8 @@ class ArtEntry:
 ######################################################
 # --------------- Scraper Functions ---------------- #
 ######################################################
+
+allArtEntries = []
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -51,8 +53,8 @@ def formatImgList(list) :
     return formattedStr
 
 
-# Opens and writes csv file with scraped data from URL
-def runCSV() :
+# Requests page content, scrapes and iterates through art entry (then iterates through every section of the entry) are stores data in list and CSV file
+def runScraper() :
     # GET Request
     URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
     page = requests.get( URL )
@@ -73,6 +75,8 @@ def runCSV() :
     # Scrapes every artwork entry on the page
     for entry in entries :
 
+        artEntryObj = ArtEntry
+
         # Initializes each subsection of an artwork entry, containing:
             # Artwork      (artworkList)
             # Date         (date)
@@ -84,7 +88,10 @@ def runCSV() :
         sourceTitle = ""
         sourceImgList = []
 
-        # Scrapes data in correspondence of each subsection and row of csv, and writes to csv
+        artworkObj = Artwork(src, alt) # Stores artwork data into Artwork object
+        sourceImgObj = Artwork(src, alt) # Stores source image data into Artwork object
+
+        # Iterates through each subsection and row of csv, and writes to csv with scraped data
         sectionCounter = 1 # Tracks which subsection/column is being viewed
         for section in sections :
             
@@ -95,8 +102,12 @@ def runCSV() :
                     src = image.get('src')
                     alt = image.get('alt')
                     if(sectionCounter == 1) :
+                        artworkObj = Artwork(src, alt) # Stores artwork data into Artwork object
+                        artEntryObj.artworkList.append(artworkObj) # Stores the artwork object into the artEntry's list of artworks
                         artworkList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
                     elif(sectionCounter == 4) :
+                        srcImgObj = Artwork(src, alt) # Stores srcImg data into Artwork object
+                        artEntryObj.artworkList.append(artworkObj) # Stores the artwork object into the artEntry's list of artworks
                         sourceImgList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
             # If on a subsection containing text (2 and 3), scrape text content
             elif(sectionCounter == 2 or sectionCounter == 3) :
@@ -110,6 +121,10 @@ def runCSV() :
             # After scraping subsection, update tracker to next
             sectionCounter += 1
         
+        # Appends artEntry to list allArtEntries
+
+        allArtEntries.append()
+
         # Writes to csv file, formatting the image lists into formatted strings
         writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
 
@@ -174,7 +189,7 @@ def runGUI():
 
 def main():
     # On run file, runs CSV and GUI
-    runCSV()
+    runScraper()
     runGUI()
 
 if __name__ == '__main__':
