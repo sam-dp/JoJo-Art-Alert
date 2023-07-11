@@ -5,24 +5,38 @@ import csv
 import PySimpleGUI as sg
 import os.path
 
-# --------------- Scraper ---------------- #
 
-# GET Request
-URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
-page = requests.get( URL )
+##################################################
+# --------------- Class Objects ---------------- #
+##################################################
 
-# Check for successful status code (200)
-print("Status Code - {}".format(page.status_code))
+# artImg object, contains a string for both the source link and the alt text
+class Artwork:
+    imgSrc = ""
+    imgAlt = ""
 
-# HTML Parser
-soup = BeautifulSoup(page.content, 'html.parser')
-div = soup.find("div", {"class":"phantom-blood-tabs"})
-entries = div.find_all("table", {"class":"diamonds volume"})
+    def __init__(self, imgSrc, imgAlt):
+        self.imgSrc = imgSrc
+        self.imgAlt = imgAlt
+
+# artEntry object, contains all information of an artwork entry including the artwork links, date, source title, and source image
+class ArtEntry:
+    artworkList = [] # list containing artwork objects
+    date = ""
+    sourceTitle = ""
+    sourceImgList = [] # list of artwork objects (source images)
+    
+    def __init__(self, artworkList, date, sourceTitle, sourceImgList) :
+        self.artworkList = artworkList
+        self.date = date
+        self.sourceTitle = sourceTitle
+        self.sourceImgList = sourceImgList
 
 
-#############
-# FUNCTIONS #
-#############
+
+######################################################
+# --------------- Scraper Functions ---------------- #
+######################################################
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -38,7 +52,18 @@ def formatImgList(list) :
 
 
 # Opens and writes csv file with scraped data from URL
-def updateCSV() :
+def runCSV() :
+    # GET Request
+    URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
+    page = requests.get( URL )
+
+    # Check for successful status code (200)
+    print("Status Code - {}".format(page.status_code))
+
+    # HTML Parser
+    soup = BeautifulSoup(page.content, 'html.parser')
+    div = soup.find("div", {"class":"phantom-blood-tabs"})
+    entries = div.find_all("table", {"class":"diamonds volume"})
 
     # Initialize writer and csv file
     file = open("entries.csv", "w", newline='', encoding='utf-8')
@@ -90,56 +115,70 @@ def updateCSV() :
 
     file.close()
 
-# On run file, updates CSV
-#updateCSV()
 
 
+##################################################
+# --------------- GUI Functions ---------------- #
+##################################################
 
-# --------------- GUI ---------------- #
-sg.theme('DarkGrey4')
+def runGUI():
 
-# Layout
-file_list_column = [
-    [
-        #sg.Text("Entry Folder"),
-        #sg.In(size=(25,1), enable_events = True, key = "-FOLDER-"),
-        
-    ],
-    [
-        sg.Listbox( 
-            values=[], enable_events=True, size=(40,20),
-            key="-FILE LIST-"
-        )
-    ],
-]
+    # --------------- GUI ---------------- #
+    sg.theme('DarkGrey4')
 
-image_viewer_column = [
-    [sg.Text("Choose an entry from the list on the left:")], 
-    [sg.Text(size=(40,1), key="-TOUT-")],
-    [sg.Image(key="-IMAGE-")],
-]
-
-layout = [
-    [
-        sg.Column(file_list_column),
-        sg.VSeparator(),
-        sg.Column(image_viewer_column),
+    # Layout
+    file_list_column = [
+        [
+            #sg.Text("Entry Folder"),
+            #sg.In(size=(25,1), enable_events = True, key = "-FOLDER-"),
+            
+        ],
+        [
+            sg.Listbox( 
+                values=[], enable_events=True, size=(40,20),
+                key="-FILE LIST-"
+            )
+        ],
     ]
 
-]
+    image_viewer_column = [
+        [sg.Text("Choose an entry from the list on the left:")], 
+        [sg.Text(size=(40,1), key="-TOUT-")],
+        [sg.Image(key="-IMAGE-")],
+    ]
 
-# Window
-window = sg.Window("JoJo's Art Scraper and Viewer", layout)
+    layout = [
+        [
+            sg.Column(file_list_column),
+            sg.VSeparator(),
+            sg.Column(image_viewer_column),
+        ]
+
+    ]
+
+    # Window
+    window = sg.Window("JoJo's Art Scraper and Viewer", layout)
+
+    # Event Loop
+    while True :
+        event, values = window.read()
+        if event == sg.WIN_CLOSED :
+            break
+
+    window.close()
 
 
-# Event Loop
-while True :
-    event, values = window.read()
-    if event == sg.WIN_CLOSED :
-        break
+#########################################
+# --------------- Main ---------------- #
+#########################################
 
-window.close()
+def main():
+    # On run file, runs CSV and GUI
+    runCSV()
+    runGUI()
 
+if __name__ == '__main__':
+    main()
 
 
 
