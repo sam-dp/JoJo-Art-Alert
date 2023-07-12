@@ -31,6 +31,9 @@ class ArtEntry:
         self.sourceTitle = sourceTitle
         self.sourceImgList = sourceImgList
 
+    def __repr__(self):
+        return f"{self.sourceTitle}"
+
 
 
 ######################################################
@@ -163,13 +166,8 @@ def runGUI():
     # Layout
     file_list_column = [
         [
-            #sg.Text("Entry Folder"),
-            #sg.In(size=(25,1), enable_events = True, key = "-FOLDER-"),
-            
-        ],
-        [
             sg.Listbox( 
-                values=[], enable_events=True, size=(40,20),
+                allArtEntries, enable_events=True, size=(80,20), horizontal_scroll=True,
                 key="-FILE LIST-"
             )
         ],
@@ -191,13 +189,14 @@ def runGUI():
     ]
 
     # Window
-    window = sg.Window("JoJo's Art Scraper and Viewer", layout)
+    window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
 
     # Event Loop
     while True :
         event, values = window.read()
         if event == sg.WIN_CLOSED :
             break
+        print(event, values)
 
     window.close()
 
