@@ -164,26 +164,26 @@ def runGUI():
     sg.theme('DarkGrey4')
 
     # Layout
-    file_list_column = [
+    entryList_column = [
         [
             sg.Listbox( 
                 allArtEntries, enable_events=True, size=(80,20), horizontal_scroll=True,
-                key="-FILE LIST-"
+                key="-EntryList-"
             )
         ],
     ]
 
-    image_viewer_column = [
+    entryViwer_column = [
         [sg.Text("Choose an entry from the list on the left:")], 
-        [sg.Text(size=(40,1), key="-TOUT-")],
-        [sg.Image(key="-IMAGE-")],
+        #[sg.Text(size=(40,1), key="-TOUT-")],
+        [sg.Image(key="-Entry-")],
     ]
 
     layout = [
         [
-            sg.Column(file_list_column),
+            sg.Column(entryList_column),
             sg.VSeparator(),
-            sg.Column(image_viewer_column),
+            sg.Column(entryViwer_column),
         ]
 
     ]
