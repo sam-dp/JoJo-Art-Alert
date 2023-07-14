@@ -4,6 +4,7 @@ import csv
 
 import PySimpleGUI as sg
 import urllib.request
+from PIL import Image
 
 ##################################################
 # --------------- Class Objects ---------------- #
@@ -161,16 +162,27 @@ def runScraper() :
 
 # Is passed an img url (src), and spoofs headers to bypass Error 403: Forbidden
 def openUrl(src) :
-    req = urllib.request.Request(src, headers={'User-Agent' : "Magic Browser"}) 
-    return urllib.request.urlopen(req)
+    try:
+        req = urllib.request.Request(src, headers={'User-Agent' : "Magic Browser"}) 
+        return urllib.request.urlopen(req)
+    except:
+        print(f"Error encountered in openUrl() with src: \'{src}\'")
+
+def toPNG(src) :
+
+    return
+
+    
 
 
 def runGUI():
 
     # --------------- GUI ---------------- #
+
+    # Theme
     sg.theme('DarkGrey4')
 
-    # Layout
+    # List of Entries
     entryList_column = [
         [
             sg.Listbox( 
@@ -179,7 +191,8 @@ def runGUI():
             )
         ],
     ]
-
+    
+    # Entry Viewer panel
     entryViwer_column = [
 
         # Instruction Text
@@ -187,7 +200,6 @@ def runGUI():
 
         # Image panel
         [sg.Image(size=(600,600), key="-ENTRYIMAGE-")],
-        #[sg.Image(openUrl("https://static.jojowiki.com/images/7/7b/latest/20230101214917/Mummy_Shonen_Thunder.png").read(), key="-ENTRYIMAGE-")],
 
         # Next and Previous buttons
         [sg.Button("Prev", key="-PREV-"), sg.Button("Next", key="-NEXT-")],
@@ -201,6 +213,7 @@ def runGUI():
         
     ]
 
+    # Layout
     layout = [
         [
             sg.Column(entryList_column),
@@ -223,9 +236,12 @@ def runGUI():
             break
         elif event == "-ENTRYLIST-" :
             for artEntry in values['-ENTRYLIST-'] :
-               window["-DATE-"].update(f"{artEntry.date}")
-               window["-TITLE-"].update(f"{artEntry.sourceTitle}")
-               #"openUrl(https://static.jojowiki.com/images/d/d9/latest/20200412091310/The_Bottle.png).read()"
+                currentEntry = artEntry
+
+                window["-DATE-"].update(f"{currentEntry.date}")
+                window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
+                window["-ENTRYIMAGE-"].update(openUrl(currentEntry.artworkList[0].imgSrc).read())
+               
 
         print(event, values)
 
