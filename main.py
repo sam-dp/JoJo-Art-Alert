@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 
-import PySimpleGUI as sg
+import PySimpleGUIQt as sg
 import urllib.request
 from PIL import Image
 
@@ -226,9 +226,11 @@ def runGUI():
     # Window
     window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
 
-    # Event Loop
+    # Updated variables
     currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
+    entryImgindex = 0
 
+    # Event Loop
     while True :
         event, values = window.read()
         
@@ -241,6 +243,8 @@ def runGUI():
                 window["-DATE-"].update(f"{currentEntry.date}")
                 window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
                 window["-ENTRYIMAGE-"].update(openUrl(currentEntry.artworkList[0].imgSrc).read())
+                
+
                
 
         print(event, values)
