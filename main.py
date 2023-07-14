@@ -178,11 +178,26 @@ def openUrl(src) :
     except:
         print(f"Error encountered in openUrl() with src: \'{src}\'")
 
-def toPNG(src) :
+# Returns image value for EntryImage depending on img type (PNG or JPG)
+def updateEntryImg(url) :
+                
+    # If imgSrc is a png, update window using urllib
+    if('.png' in url) :
+        #window["-ENTRYIMAGE-"].update(openUrl(url).read())
+        return openUrl(url).read()
 
-    return
+    # If imgSrc is a jpg, update window using Pillow
+    elif('.jpg' in url) :
+        # Creates PIL img from scraped jpg data, converts into png data
+        pil_img = Image.open(io.BytesIO(openUrl(url).read()))
+        png_bio = io.BytesIO()
+        pil_img.save(png_bio, format="PNG")
+        png_data = png_bio.getvalue()
 
-    
+        #window["-ENTRYIMAGE-"].update(data=png_data)
+        return png_data
+
+
 # --------------- GUI ---------------- #
 
 def runGUI():
@@ -236,6 +251,8 @@ def runGUI():
     # Updated variables
     currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
     entryImgindex = 0
+    url = currentEntry.artworkList[entryImgindex].imgSrc
+    prevEntry = currentEntry
 
     # Event Loop
     while True :
@@ -243,31 +260,34 @@ def runGUI():
         
         if event == sg.WIN_CLOSED :
             break
-        elif event == "-ENTRYLIST-" :
+
+        # Displays selected artEntry details
+        elif event == "-ENTRYLIST-"  :
             for artEntry in values['-ENTRYLIST-'] :
                 # Updates Current viewed entry, and current viewed image url
+                entryImgindex = 0
                 currentEntry = artEntry
-                url = currentEntry.artworkList[entryImgindex].imgSrc
 
                 # Updates Windows
                 window["-DATE-"].update(f"{currentEntry.date}")
                 window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
-                print(currentEntry.artworkList[0].imgSrc)
+                window["-ENTRYIMAGE-"].update(updateEntryImg(currentEntry.artworkList[entryImgindex].imgSrc))
 
+        # Prev in imgList incrementer
+        elif(event == "-PREV-") :
+            if(entryImgindex - 1 < 0) :
+                entryImgindex = len(currentEntry.artworkList) - 1
+            else :
+                entryImgindex -= 1
+            window["-ENTRYIMAGE-"].update(updateEntryImg(currentEntry.artworkList[entryImgindex].imgSrc))
 
-                # If imgSrc is a png, update window using urllib
-                if('.png' in url) :
-                    window["-ENTRYIMAGE-"].update(openUrl(url).read())
-
-                # If imgSrc is a jpg, update window using Pillow
-                elif('.jpg' in url) :
-                    # Creates PIL img from scraped jpg data, converts into png data
-                    pil_img = Image.open(io.BytesIO(openUrl(url).read()))
-                    png_bio = io.BytesIO()
-                    pil_img.save(png_bio, format="PNG")
-                    png_data = png_bio.getvalue()
-
-                    window["-ENTRYIMAGE-"].update(data=png_data)
+        # Next in imgList incrementer
+        elif(event == "-NEXT-") :
+            if(entryImgindex + 1 > len(currentEntry.artworkList) - 1) :
+                entryImgindex = 0
+            else :
+                entryImgindex += 1
+            window["-ENTRYIMAGE-"].update(updateEntryImg(currentEntry.artworkList[entryImgindex].imgSrc))
 
         print(event, values)
     window.close()
