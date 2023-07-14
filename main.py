@@ -254,7 +254,8 @@ def runGUI():
     url = currentEntry.artworkList[entryImgindex].imgSrc
     prevEntry = currentEntry
 
-    # Event Loop
+
+    # --------------- EVENT LOOP ---------------- #
     while True :
         event, values = window.read()
         
@@ -273,7 +274,7 @@ def runGUI():
                 window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
                 window["-ENTRYIMAGE-"].update(updateEntryImg(currentEntry.artworkList[entryImgindex].imgSrc))
 
-        # Prev in imgList incrementer
+        # Prev in artworkList incrementer
         elif(event == "-PREV-") :
             if(entryImgindex - 1 < 0) :
                 entryImgindex = len(currentEntry.artworkList) - 1
@@ -281,7 +282,7 @@ def runGUI():
                 entryImgindex -= 1
             window["-ENTRYIMAGE-"].update(updateEntryImg(currentEntry.artworkList[entryImgindex].imgSrc))
 
-        # Next in imgList incrementer
+        # Next in artworkList incrementer
         elif(event == "-NEXT-") :
             if(entryImgindex + 1 > len(currentEntry.artworkList) - 1) :
                 entryImgindex = 0
