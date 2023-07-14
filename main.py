@@ -1,11 +1,18 @@
-from bs4 import BeautifulSoup
+# Scraping
+from bs4 import BeautifulSoup 
 import requests
+
+# Exporting to CSV
 import csv
 
+# GUI
 import PySimpleGUI as sg
 import urllib.request
+
+# GUI JPG Image processing
 import io
 from PIL import Image
+
 
 ##################################################
 # --------------- Class Objects ---------------- #
@@ -64,6 +71,8 @@ def formatImgList(list) :
 
     return formattedStr
 
+
+# --------------- Scraper ---------------- #
 
 # Requests page content, scrapes and iterates through art entry (then iterates through every section of the entry) are stores data in list and CSV file
 def runScraper() :
@@ -174,11 +183,9 @@ def toPNG(src) :
     return
 
     
-
+# --------------- GUI ---------------- #
 
 def runGUI():
-
-    # --------------- GUI ---------------- #
 
     # Theme
     sg.theme('DarkGrey4')
@@ -187,7 +194,7 @@ def runGUI():
     entryList_column = [
         [
             sg.Listbox( 
-                allArtEntries, enable_events=True, size=(80,20), horizontal_scroll=True,
+                allArtEntries, enable_events=True, size=(80, 20), horizontal_scroll=True,
                 key="-ENTRYLIST-"
             )
         ],
@@ -195,7 +202,7 @@ def runGUI():
     
     # Entry Viewer panel
     entryViwer_column = [
-
+        
         # Instruction Text
         [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-")], 
 
@@ -247,29 +254,22 @@ def runGUI():
                 window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
                 print(currentEntry.artworkList[0].imgSrc)
 
+
                 # If imgSrc is a png, update window using urllib
                 if('.png' in url) :
                     window["-ENTRYIMAGE-"].update(openUrl(url).read())
-                # If imgSrc is a jpg, update window using Pillow through jpg to png conversion
+
+                # If imgSrc is a jpg, update window using Pillow
                 elif('.jpg' in url) :
-                    pil_image = Image.open(io.BytesIO(openUrl(url).read()))
+                    # Creates PIL img from scraped jpg data, converts into png data
+                    pil_img = Image.open(io.BytesIO(openUrl(url).read()))
                     png_bio = io.BytesIO()
-                    pil_image.save(png_bio, format="PNG")
+                    pil_img.save(png_bio, format="PNG")
                     png_data = png_bio.getvalue()
 
                     window["-ENTRYIMAGE-"].update(data=png_data)
 
-                
-
-               
-
         print(event, values)
-
-
-        
-
-
-
     window.close()
 
 
