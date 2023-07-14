@@ -14,10 +14,12 @@ import io
 from PIL import Image
 
 
+
+
+
 ##################################################
 # --------------- Class Objects ---------------- #
 ##################################################
-
 
 # artImg object, contains a string for both the source link and the alt text
 class Artwork:
@@ -46,16 +48,20 @@ class ArtEntry:
 
 
 
+
+
 ######################################################
 # --------------- Scraper Functions ---------------- #
 ######################################################
 
-# List of ArtEntry objects -- containing all scraped art entries and their individual data
+# PRIMARY DATA STRUCTURE: List of ArtEntry objects containing all scraped art entries and their individual data
+    #
     # allArtEntries[] -> ArtEntry -> artworkList[] -> Artwork -> imgSrc"" 
     #                             -> date""                   -> imgAlt""
     #                             -> sourceTitle""
     #                             -> srcImgList[]  -> Artwork -> imgSrc""
     #                                                         -> imgAlt""
+    #
 allArtEntries = []
 
 
@@ -166,6 +172,8 @@ def runScraper() :
 
 
 
+
+
 ##################################################
 # --------------- GUI Functions ---------------- #
 ##################################################
@@ -179,7 +187,7 @@ def openUrl(src) :
         print(f"Error encountered in openUrl() with src: \'{src}\'")
 
 # Returns image value for EntryImage depending on img type (PNG or JPG)
-def updateEntryImg(url) :
+def returnImgData(url) :
                 
     # If imgSrc is a png, update window using urllib
     if('.png' in url) :
@@ -251,14 +259,14 @@ def runGUI():
     # Updated variables
     currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
     entryImgindex = 0
-    url = currentEntry.artworkList[entryImgindex].imgSrc
-    prevEntry = currentEntry
 
 
     # --------------- EVENT LOOP ---------------- #
+
     while True :
         event, values = window.read()
         
+        # On exit, quit
         if event == sg.WIN_CLOSED :
             break
 
@@ -272,7 +280,7 @@ def runGUI():
                 # Updates Windows
                 window["-DATE-"].update(f"{currentEntry.date}")
                 window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
-                window["-ENTRYIMAGE-"].update(updateEntryImg(currentEntry.artworkList[entryImgindex].imgSrc))
+                window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
 
         # Prev in artworkList incrementer
         elif(event == "-PREV-") :
@@ -280,7 +288,8 @@ def runGUI():
                 entryImgindex = len(currentEntry.artworkList) - 1
             else :
                 entryImgindex -= 1
-            window["-ENTRYIMAGE-"].update(updateEntryImg(currentEntry.artworkList[entryImgindex].imgSrc))
+            # Updates image selections
+            window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
 
         # Next in artworkList incrementer
         elif(event == "-NEXT-") :
@@ -288,10 +297,14 @@ def runGUI():
                 entryImgindex = 0
             else :
                 entryImgindex += 1
-            window["-ENTRYIMAGE-"].update(updateEntryImg(currentEntry.artworkList[entryImgindex].imgSrc))
+            # Updates image selections
+            window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
 
         print(event, values)
     window.close()
+
+
+
 
 
 #########################################
