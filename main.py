@@ -162,7 +162,7 @@ def runScraper() :
 # Is passed an img url (src), and spoofs headers to bypass Error 403: Forbidden
 def openUrl(src) :
     req = urllib.request.Request(src, headers={'User-Agent' : "Magic Browser"}) 
-    return urllib.request.urlopen( req )
+    return urllib.request.urlopen(req)
 
 
 def runGUI():
@@ -181,11 +181,23 @@ def runGUI():
     ]
 
     entryViwer_column = [
-        [sg.Text("Choose an entry from the list on the left:")], 
-        [sg.Image(openUrl("https://static.jojowiki.com/images/7/7b/latest/20230101214917/Mummy_Shonen_Thunder.png").read(), key="-ENTRYIMAGE-")],
+
+        # Instruction Text
+        [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-")], 
+
+        # Image panel
+        [sg.Image(size=(600,600), key="-ENTRYIMAGE-")],
         #[sg.Image(openUrl("https://static.jojowiki.com/images/7/7b/latest/20230101214917/Mummy_Shonen_Thunder.png").read(), key="-ENTRYIMAGE-")],
+
+        # Next and Previous buttons
         [sg.Button("Prev", key="-PREV-"), sg.Button("Next", key="-NEXT-")],
-        [sg.Text(size=(40,1), key="-TOUT-")],
+
+        # Title text
+        [sg.Text(key='-TITLE-')],
+
+        # Date text
+        [sg.Text(key='-DATE-')],
+        [sg.Text(size=(40,1), key="-TOUT-")]
         
     ]
 
@@ -211,7 +223,9 @@ def runGUI():
             break
         elif event == "-ENTRYLIST-" :
             for artEntry in values['-ENTRYLIST-'] :
-               print(artEntry.artworkList[0].date)
+               window["-DATE-"].update(f"{artEntry.date}")
+               window["-TITLE-"].update(f"{artEntry.sourceTitle}")
+               #"openUrl(https://static.jojowiki.com/images/d/d9/latest/20200412091310/The_Bottle.png).read()"
 
         print(event, values)
 
