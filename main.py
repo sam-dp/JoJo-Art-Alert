@@ -15,8 +15,6 @@ from PIL import Image
 
 
 
-
-
 ##################################################
 # --------------- Class Objects ---------------- #
 ##################################################
@@ -45,8 +43,6 @@ class ArtEntry:
 
     def __repr__(self):
         return f"{self.sourceTitle}"
-
-
 
 
 
@@ -128,8 +124,8 @@ def runScraper() :
                 images = section.find_all("img") # Image content is stored within <img> tags
 
                 for image in images :
-                    src = image.get('src')
-                    alt = image.get('alt')
+                    src = image.get('src') # Grabs image source-link
+                    alt = image.get('alt') # Grabs image alt text
 
                     if(sectionCounter == 1) :
                         # Stores in allArtEntries list
@@ -169,8 +165,6 @@ def runScraper() :
         writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
 
     file.close()
-
-
 
 
 
@@ -227,13 +221,13 @@ def runGUI():
     entryViwer_column = [
         
         # Instruction Text
-        [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-")], 
+        [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
 
         # Image panel
         [sg.Image(key="-ENTRYIMAGE-")],
 
-        # Next and Previous buttons
-        [sg.Button("Prev", key="-PREV-"), sg.Button("Next", key="-NEXT-")],
+        # Next and Previous buttons, artworkList index
+        [sg.Button("Prev", key="-PREV-", visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
 
         # Title text
         [sg.Text(key='-TITLE-')],
@@ -282,14 +276,28 @@ def runGUI():
                 window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
                 window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
 
+                # Updates button and artworkList index visibility if artworkList > 1 
+                if(len(currentEntry.artworkList) > 1) :
+                    window["-PREV-"].update(visible=True)
+                    window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}", visible=True)
+                    window["-NEXT-"].update(visible=True)
+                else:
+                    window["-PREV-"].update(visible=False)
+                    window["-LISTINDEX-"].update(visible=False)
+                    window["-NEXT-"].update(visible=False)
+
+                # Hides instruction text once an entry has been selected
+                window["-INSTRUCTION-"].update(visible=False)
+
         # Prev in artworkList incrementer
         elif(event == "-PREV-") :
             if(entryImgindex - 1 < 0) :
                 entryImgindex = len(currentEntry.artworkList) - 1
             else :
                 entryImgindex -= 1
-            # Updates image selections
+            # Updates image selections and list index
             window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
+            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}")
 
         # Next in artworkList incrementer
         elif(event == "-NEXT-") :
@@ -297,13 +305,12 @@ def runGUI():
                 entryImgindex = 0
             else :
                 entryImgindex += 1
-            # Updates image selections
+            # Updates image selections and list index
             window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
+            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}")
 
         print(event, values)
     window.close()
-
-
 
 
 
