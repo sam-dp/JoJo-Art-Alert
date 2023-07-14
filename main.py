@@ -3,6 +3,7 @@ import requests
 import csv
 
 import PySimpleGUI as sg
+import urllib.request
 
 ##################################################
 # --------------- Class Objects ---------------- #
@@ -158,6 +159,12 @@ def runScraper() :
 # --------------- GUI Functions ---------------- #
 ##################################################
 
+# Is passed an img url (src), and spoofs headers to bypass Error 403: Forbidden
+def openUrl(src) :
+    req = urllib.request.Request(src, headers={'User-Agent' : "Magic Browser"}) 
+    return urllib.request.urlopen( req )
+
+
 def runGUI():
 
     # --------------- GUI ---------------- #
@@ -168,15 +175,18 @@ def runGUI():
         [
             sg.Listbox( 
                 allArtEntries, enable_events=True, size=(80,20), horizontal_scroll=True,
-                key="-EntryList-"
+                key="-ENTRYLIST-"
             )
         ],
     ]
 
     entryViwer_column = [
         [sg.Text("Choose an entry from the list on the left:")], 
-        #[sg.Text(size=(40,1), key="-TOUT-")],
-        [sg.Image(key="-Entry-")],
+        [sg.Image(openUrl("https://static.jojowiki.com/images/7/7b/latest/20230101214917/Mummy_Shonen_Thunder.png").read(), key="-ENTRYIMAGE-")],
+        #[sg.Image(openUrl("https://static.jojowiki.com/images/7/7b/latest/20230101214917/Mummy_Shonen_Thunder.png").read(), key="-ENTRYIMAGE-")],
+        [sg.Button("Prev", key="-PREV-"), sg.Button("Next", key="-NEXT-")],
+        [sg.Text(size=(40,1), key="-TOUT-")],
+        
     ]
 
     layout = [
@@ -192,11 +202,23 @@ def runGUI():
     window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
 
     # Event Loop
+    currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
+
     while True :
         event, values = window.read()
+        
         if event == sg.WIN_CLOSED :
             break
+        elif event == "-ENTRYLIST-" :
+            for artEntry in values['-ENTRYLIST-'] :
+               print(artEntry.artworkList[0].date)
+
         print(event, values)
+
+
+        
+
+
 
     window.close()
 
