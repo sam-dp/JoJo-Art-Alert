@@ -2,8 +2,9 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 
-import PySimpleGUIQt as sg
+import PySimpleGUI as sg
 import urllib.request
+import io
 from PIL import Image
 
 ##################################################
@@ -199,7 +200,7 @@ def runGUI():
         [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-")], 
 
         # Image panel
-        [sg.Image(size=(600,600), key="-ENTRYIMAGE-")],
+        [sg.Image(key="-ENTRYIMAGE-")],
 
         # Next and Previous buttons
         [sg.Button("Prev", key="-PREV-"), sg.Button("Next", key="-NEXT-")],
@@ -209,7 +210,6 @@ def runGUI():
 
         # Date text
         [sg.Text(key='-DATE-')],
-        [sg.Text(size=(40,1), key="-TOUT-")]
         
     ]
 
@@ -217,7 +217,7 @@ def runGUI():
     layout = [
         [
             sg.Column(entryList_column),
-            sg.VSeparator(),
+            sg.VSeparator(), 
             sg.Column(entryViwer_column),
         ]
 
@@ -238,11 +238,27 @@ def runGUI():
             break
         elif event == "-ENTRYLIST-" :
             for artEntry in values['-ENTRYLIST-'] :
+                # Updates Current viewed entry, and current viewed image url
                 currentEntry = artEntry
+                url = currentEntry.artworkList[entryImgindex].imgSrc
 
+                # Updates Windows
                 window["-DATE-"].update(f"{currentEntry.date}")
                 window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
-                window["-ENTRYIMAGE-"].update(openUrl(currentEntry.artworkList[0].imgSrc).read())
+                print(currentEntry.artworkList[0].imgSrc)
+
+                # If imgSrc is a png, update window using urllib
+                if('.png' in url) :
+                    window["-ENTRYIMAGE-"].update(openUrl(url).read())
+                # If imgSrc is a jpg, update window using Pillow through jpg to png conversion
+                elif('.jpg' in url) :
+                    pil_image = Image.open(io.BytesIO(openUrl(url).read()))
+                    png_bio = io.BytesIO()
+                    pil_image.save(png_bio, format="PNG")
+                    png_data = png_bio.getvalue()
+
+                    window["-ENTRYIMAGE-"].update(data=png_data)
+
                 
 
                
