@@ -1,23 +1,65 @@
-from bs4 import BeautifulSoup
+# Scraping
+from bs4 import BeautifulSoup 
 import requests
+
+# Exporting to CSV
 import csv
 
-# GET Request
-URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
-page = requests.get( URL )
+# GUI
+import PySimpleGUI as sg
+import urllib.request
 
-# Check for successful status code (200)
-print("Status Code - {}".format(page.status_code))
-
-# HTML Parser
-soup = BeautifulSoup(page.content, 'html.parser')
-div = soup.find("div", {"class":"phantom-blood-tabs"})
-entries = div.find_all("table", {"class":"diamonds volume"})
+# GUI JPG Image processing
+import io
+from PIL import Image
 
 
-#############
-# FUNCTIONS #
-#############
+
+##################################################
+# --------------- Class Objects ---------------- #
+##################################################
+
+# artImg object, contains a string for both the source link and the alt text
+class Artwork:
+    imgSrc = ""
+    imgAlt = ""
+
+    def __init__(self, imgSrc, imgAlt):
+        self.imgSrc = imgSrc
+        self.imgAlt = imgAlt
+
+# artEntry object, contains all information of an artwork entry including the artwork links, date, source title, and source image
+class ArtEntry:
+    artworkList = [] # list containing Artwork objects
+    date = ""
+    sourceTitle = ""
+    sourceImgList = [] # list of Artwork objects (source images)
+    
+    def __init__(self, artworkList, date, sourceTitle, sourceImgList) :
+        self.artworkList = artworkList
+        self.date = date
+        self.sourceTitle = sourceTitle
+        self.sourceImgList = sourceImgList
+
+    def __repr__(self):
+        return f"{self.sourceTitle}"
+
+
+
+######################################################
+# --------------- Scraper Functions ---------------- #
+######################################################
+
+# PRIMARY DATA STRUCTURE: List of ArtEntry objects containing all scraped art entries and their individual data
+    #
+    # allArtEntries[] -> ArtEntry -> artworkList[] -> Artwork -> imgSrc"" 
+    #                             -> date""                   -> imgAlt""
+    #                             -> sourceTitle""
+    #                             -> srcImgList[]  -> Artwork -> imgSrc""
+    #                                                         -> imgAlt""
+    #
+allArtEntries = []
+
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -32,8 +74,21 @@ def formatImgList(list) :
     return formattedStr
 
 
-# Opens and writes csv file with scraped data from URL
-def updateCSV() :
+# --------------- Scraper ---------------- #
+
+# Requests page content, scrapes and iterates through art entry (then iterates through every section of the entry) are stores data in list and CSV file
+def runScraper() :
+    # GET Request
+    URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
+    page = requests.get( URL )
+
+    # Check for successful status code (200)
+    print("Status Code - {}".format(page.status_code))
+
+    # HTML Parser
+    soup = BeautifulSoup(page.content, 'html.parser')
+    div = soup.find("div", {"class":"phantom-blood-tabs"})
+    entries = div.find_all("table", {"class":"diamonds volume"})
 
     # Initialize writer and csv file
     file = open("entries.csv", "w", newline='', encoding='utf-8')
@@ -54,23 +109,44 @@ def updateCSV() :
         sourceTitle = ""
         sourceImgList = []
 
-        # Scrapes data in correspondence of each subsection and row of csv, and writes to csv
+        artEntryObj = ArtEntry([], "", "", [])
+        artworkObj = Artwork("", "")
+        srcImgObj = Artwork("","")
+
+        # Iterates through each subsection and row of csv, and writes to csv with scraped data
         sectionCounter = 1 # Tracks which subsection/column is being viewed
         for section in sections :
+
             
+
             # If on a subsection containing images (1 and 4), scrape image content
             if(sectionCounter == 1 or sectionCounter == 4) :
                 images = section.find_all("img") # Image content is stored within <img> tags
+
                 for image in images :
-                    src = image.get('src')
-                    alt = image.get('alt')
+                    src = image.get('src') # Grabs image source-link
+                    alt = image.get('alt') # Grabs image alt text
+
                     if(sectionCounter == 1) :
+                        # Stores in allArtEntries list
+                        artworkObj = Artwork(src, alt) 
+                        artEntryObj.artworkList.append(artworkObj) 
+
+                        # Stores in CSV
                         artworkList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
+
                     elif(sectionCounter == 4) :
+                        # Stores in allArtEntries list
+                        srcImgObj = Artwork(src, alt) 
+                        artEntryObj.sourceImgList.append(srcImgObj) 
+
+                        # Stores in CSV
                         sourceImgList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
+
             # If on a subsection containing text (2 and 3), scrape text content
             elif(sectionCounter == 2 or sectionCounter == 3) :
                 textContent = section.find("center") # Text content is stored within <center> tags
+
                 for string in textContent.strings :
                     if(sectionCounter == 2) :
                         date += string
@@ -80,15 +156,175 @@ def updateCSV() :
             # After scraping subsection, update tracker to next
             sectionCounter += 1
         
+        # Appends artEntry to list allArtEntries
+        artEntryObj.date = date
+        artEntryObj.sourceTitle = sourceTitle
+        allArtEntries.append(artEntryObj)
+
         # Writes to csv file, formatting the image lists into formatted strings
         writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
 
     file.close()
 
-# On run file, updates CSV
-updateCSV()
 
 
+##################################################
+# --------------- GUI Functions ---------------- #
+##################################################
+
+# Is passed an img url (src), and spoofs headers to bypass Error 403: Forbidden
+def openUrl(src) :
+    try:
+        req = urllib.request.Request(src, headers={'User-Agent' : "Magic Browser"}) 
+        return urllib.request.urlopen(req)
+    except:
+        print(f"Error encountered in openUrl() with src: \'{src}\'")
+
+# Returns image value for EntryImage depending on img type (PNG or JPG)
+def returnImgData(url) :
+                
+    # If imgSrc is a png, update window using urllib
+    if('.png' in url) :
+        #window["-ENTRYIMAGE-"].update(openUrl(url).read())
+        return openUrl(url).read()
+
+    # If imgSrc is a jpg, update window using Pillow
+    elif('.jpg' in url) :
+        # Creates PIL img from scraped jpg data, converts into png data
+        pil_img = Image.open(io.BytesIO(openUrl(url).read()))
+        png_bio = io.BytesIO()
+        pil_img.save(png_bio, format="PNG")
+        png_data = png_bio.getvalue()
+
+        #window["-ENTRYIMAGE-"].update(data=png_data)
+        return png_data
+
+
+# --------------- GUI ---------------- #
+
+def runGUI():
+
+    # Theme
+    sg.theme('DarkGrey4')
+
+    # List of Entries
+    entryList_column = [
+        [
+            sg.Listbox( 
+                allArtEntries, enable_events=True, size=(80, 20), horizontal_scroll=True,
+                key="-ENTRYLIST-"
+            )
+        ],
+    ]
+    
+    # Entry Viewer panel
+    entryViwer_column = [
+        
+        # Instruction Text
+        [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
+
+        # Image panel
+        [sg.Image(key="-ENTRYIMAGE-")],
+
+        # Next and Previous buttons, artworkList index
+        [sg.Button("Prev", key="-PREV-", visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
+
+        # Title text
+        [sg.Text(key='-TITLE-')],
+
+        # Date text
+        [sg.Text(key='-DATE-')],
+        
+    ]
+
+    # Layout
+    layout = [
+        [
+            sg.Column(entryList_column),
+            sg.VSeparator(), 
+            sg.Column(entryViwer_column),
+        ]
+
+    ]
+
+    # Window
+    window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
+
+    # Updated variables
+    currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
+    entryImgindex = 0
+
+
+    # --------------- EVENT LOOP ---------------- #
+
+    while True :
+        event, values = window.read()
+        
+        # On exit, quit
+        if event == sg.WIN_CLOSED :
+            break
+
+        # Displays selected artEntry details
+        elif event == "-ENTRYLIST-"  :
+            for artEntry in values['-ENTRYLIST-'] :
+                # Updates Current viewed entry, and current viewed image url
+                entryImgindex = 0
+                currentEntry = artEntry
+
+                # Updates Windows
+                window["-DATE-"].update(f"{currentEntry.date}")
+                window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
+                window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
+
+                # Updates button and artworkList index visibility if artworkList > 1 
+                if(len(currentEntry.artworkList) > 1) :
+                    window["-PREV-"].update(visible=True)
+                    window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}", visible=True)
+                    window["-NEXT-"].update(visible=True)
+                else:
+                    window["-PREV-"].update(visible=False)
+                    window["-LISTINDEX-"].update(visible=False)
+                    window["-NEXT-"].update(visible=False)
+
+                # Hides instruction text once an entry has been selected
+                window["-INSTRUCTION-"].update(visible=False)
+
+        # Prev in artworkList incrementer
+        elif(event == "-PREV-") :
+            if(entryImgindex - 1 < 0) :
+                entryImgindex = len(currentEntry.artworkList) - 1
+            else :
+                entryImgindex -= 1
+            # Updates image selections and list index
+            window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
+            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}")
+
+        # Next in artworkList incrementer
+        elif(event == "-NEXT-") :
+            if(entryImgindex + 1 > len(currentEntry.artworkList) - 1) :
+                entryImgindex = 0
+            else :
+                entryImgindex += 1
+            # Updates image selections and list index
+            window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
+            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}")
+
+        print(event, values)
+    window.close()
+
+
+
+#########################################
+# --------------- Main ---------------- #
+#########################################
+
+def main():
+    # On run file, runs CSV and GUI
+    runScraper()
+    runGUI()
+
+if __name__ == '__main__':
+    main()
 
 
 
