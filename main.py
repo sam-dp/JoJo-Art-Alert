@@ -1,8 +1,8 @@
 # Scraping
+import lxml
+import cchardet
 from bs4 import BeautifulSoup 
 import requests
-import lxml
-import cchardet as chardet
 
 # Exporting to CSV
 import csv
@@ -89,7 +89,7 @@ def runScraper() :
     print("Status Code - {}".format(page.status_code))
 
     # HTML Parser
-    soup = BeautifulSoup(page.content, 'lxml')
+    soup = BeautifulSoup(page.text, "lxml")
     divs = soup.find("div", {"class":"phantom-blood-tabs"})
     entries = divs.find_all("table", {"class":"diamonds volume"})
 
@@ -134,9 +134,11 @@ def runScraper() :
                     # Temporary HTML parser to scrape full-res image
                     newRequests_session = requests.Session()
                     newPage = newRequests_session.get( newURL )  
-                    newSoup = BeautifulSoup(newPage.content, 'lxml')
-                    newDiv = newSoup.find("div", {"class":"fullMedia"})
-                    media = newDiv.find("a", {"class":"internal"})
+                    newSoup = BeautifulSoup(newPage.text, "lxml")
+                    media = newSoup.find("a", {"class":"internal"})
+
+                    #newDiv = newSoup.find("div", {"class":"fullMedia"})
+                    #media = newDiv.find("a", {"class":"internal"})
 
                     src = media.get('href') # Grabs image source-link
                     alt = media.get('title') # Grabs image alt text
@@ -238,7 +240,7 @@ def runGUI():
         [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
 
         # Image panel
-        [sg.Image(key="-ENTRYIMAGE-")],
+        [sg.Image(size=(800,800), key="-ENTRYIMAGE-")],
 
         # Next and Previous buttons, artworkList index
         [sg.Button("Prev", key="-PREV-", visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
