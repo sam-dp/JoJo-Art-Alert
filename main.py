@@ -76,6 +76,8 @@ def formatImgList(list) :
 
 # --------------- Scraper ---------------- #
 
+# CURRENTLY ONLY SCRAPES THUMBNAILS
+
 # Requests page content, scrapes and iterates through art entry (then iterates through every section of the entry) are stores data in list and CSV file
 def runScraper() :
     # GET Request
