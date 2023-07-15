@@ -1,6 +1,6 @@
 # Scraping
-import lxml
-import cchardet
+import lxml # html parser
+import cchardet # character reading
 from bs4 import BeautifulSoup 
 import requests
 
@@ -124,6 +124,7 @@ def runScraper() :
             if(sectionCounter == 1 or sectionCounter == 4) :
                 thumbnails = section.find_all("a") # href is stored within <a> tags
 
+                # For every thumbnail image, find full-res webpage and create new 
                 for thumbnail in thumbnails :
 
                     # Grabs href for full-res image webpage from thumbnail container
@@ -135,13 +136,18 @@ def runScraper() :
                     newRequests_session = requests.Session()
                     newPage = newRequests_session.get( newURL )  
                     newSoup = BeautifulSoup(newPage.text, "lxml")
-                    media = newSoup.find("a", {"class":"internal"})
 
-                    #newDiv = newSoup.find("div", {"class":"fullMedia"})
-                    #media = newDiv.find("a", {"class":"internal"})
+                    # Stores preview image, as full resolution images are too large
+                    media = newSoup.find("div", {"id":"file"}).find("img")
+                    src = media.get('src') # Grabs image source-link
+                    alt = media.get('alt') # Grabs image alt text
 
-                    src = media.get('href') # Grabs image source-link
-                    alt = media.get('title') # Grabs image alt text
+                    # -- REPLACE ABOVE CODE FOR FULL-RESOLUTION IMAGES -- #
+                        # WARNING: Images resolution may exceed monitor resolution and GUI will work improperly
+                    #media = newSoup.find("a", {"class":"internal"})
+                    #src = media.get('href') # Grabs image source-link
+                    #alt = media.get('title') # Grabs image alt text
+
 
                     if(sectionCounter == 1) :
                         # Stores in allArtEntries list
@@ -240,7 +246,7 @@ def runGUI():
         [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
 
         # Image panel
-        [sg.Image(size=(800,800), key="-ENTRYIMAGE-")],
+        [sg.Image(key="-ENTRYIMAGE-")],
 
         # Next and Previous buttons, artworkList index
         [sg.Button("Prev", key="-PREV-", visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
