@@ -1,6 +1,8 @@
 # Scraping
 from bs4 import BeautifulSoup 
 import requests
+import lxml
+import cchardet as chardet
 
 # Exporting to CSV
 import csv
@@ -76,21 +78,20 @@ def formatImgList(list) :
 
 # --------------- Scraper ---------------- #
 
-# CURRENTLY ONLY SCRAPES THUMBNAILS
-
 # Requests page content, scrapes and iterates through art entry (then iterates through every section of the entry) are stores data in list and CSV file
 def runScraper() :
     # GET Request
     URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
-    page = requests.get( URL )
+    requests_session = requests.Session()
+    page = requests_session.get( URL )  
 
     # Check for successful status code (200)
     print("Status Code - {}".format(page.status_code))
 
     # HTML Parser
-    soup = BeautifulSoup(page.content, 'html.parser')
-    div = soup.find("div", {"class":"phantom-blood-tabs"})
-    entries = div.find_all("table", {"class":"diamonds volume"})
+    soup = BeautifulSoup(page.content, 'lxml')
+    divs = soup.find("div", {"class":"phantom-blood-tabs"})
+    entries = divs.find_all("table", {"class":"diamonds volume"})
 
     # Initialize writer and csv file
     file = open("entries.csv", "w", newline='', encoding='utf-8')
@@ -116,18 +117,29 @@ def runScraper() :
         srcImgObj = Artwork("","")
 
         # Iterates through each subsection and row of csv, and writes to csv with scraped data
-        sectionCounter = 1 # Tracks which subsection/column is being viewed
+        sectionCounter = 1 # Tracks which subsection/column is being viewed (sections are referred to as "volumes" within the html)
         for section in sections :
-
-            
 
             # If on a subsection containing images (1 and 4), scrape image content
             if(sectionCounter == 1 or sectionCounter == 4) :
-                images = section.find_all("img") # Image content is stored within <img> tags
+                thumbnails = section.find_all("a") # href is stored within <a> tags
 
-                for image in images :
-                    src = image.get('src') # Grabs image source-link
-                    alt = image.get('alt') # Grabs image alt text
+                for thumbnail in thumbnails :
+
+                    # Grabs href for full-res image webpage from thumbnail container
+                        # href = /File:ARTORK_NAME
+                    href = thumbnail.get('href') 
+                    newURL = f"https://jojowiki.com{href}" # Appends href to domain to form new url
+
+                    # Temporary HTML parser to scrape full-res image
+                    newRequests_session = requests.Session()
+                    newPage = newRequests_session.get( newURL )  
+                    newSoup = BeautifulSoup(newPage.content, 'lxml')
+                    newDiv = newSoup.find("div", {"class":"fullMedia"})
+                    media = newDiv.find("a", {"class":"internal"})
+
+                    src = media.get('href') # Grabs image source-link
+                    alt = media.get('title') # Grabs image alt text
 
                     if(sectionCounter == 1) :
                         # Stores in allArtEntries list
