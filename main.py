@@ -357,16 +357,39 @@ def runGUI():
         elif(event == "-ARTWORKLIST-"):
             currentList = currentEntry.artworkList
             entryImgindex =0
+
             window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
             window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
+
+            # Updates button and artworkList index visibility if artworkList > 1 
+            if(len(currentList) > 1) :
+                window["-PREV-"].update(visible=True)
+                window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}", visible=True)
+                window["-NEXT-"].update(visible=True)
+            else:
+                window["-PREV-"].update(visible=False)
+                window["-LISTINDEX-"].update(visible=False)
+                window["-NEXT-"].update(visible=False)
+
             
         
         # If Source image list is selected, display
         elif(event == "-SOURCELIST-"):
             currentList = currentEntry.sourceImgList
             entryImgindex=0
+
             window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
             window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
+
+            # Updates button and artworkList index visibility if artworkList > 1 
+            if(len(currentList) > 1) :
+                window["-PREV-"].update(visible=True)
+                window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}", visible=True)
+                window["-NEXT-"].update(visible=True)
+            else:
+                window["-PREV-"].update(visible=False)
+                window["-LISTINDEX-"].update(visible=False)
+                window["-NEXT-"].update(visible=False)
 
         print(event, values)
     window.close()
