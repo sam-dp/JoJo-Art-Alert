@@ -4,8 +4,9 @@ import cchardet # character reading
 from bs4 import BeautifulSoup 
 import requests
 
-# Exporting to CSV
+# Exporting to CSV and Pickle module
 import csv
+import pickle
 
 # GUI
 import PySimpleGUI as sg
@@ -61,7 +62,18 @@ class ArtEntry:
     #                                                         -> imgAlt""
     #
 allArtEntries = []
+useStoredData = True # Initialized to use previously stored data 
 
+# Asks user to either 1) use previously stored data 2) rescrape data (which will take several minutes)
+def userDialogue() :
+    # Theme
+    sg.theme('DarkGrey4')
+    
+    choice = sg.popup_yes_no("Do you want to use previously stored data?", "Selecting \"No\" will take several minutes to update all stored entries.", title="JoJo's Art Scraper and Viewer")
+    if (choice == "Yes") :
+        useStoredData = True
+    elif(choice == "No") :
+        useStoredData = False
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -185,6 +197,7 @@ def runScraper() :
 
         # Writes to csv file, formatting the image lists into formatted strings
         writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
+        pickle.dump(allArtEntries, open("artEntriesData.p", "wb"))
 
     file.close()
 
@@ -225,9 +238,8 @@ def returnImgData(url) :
 # --------------- GUI ---------------- #
 
 def runGUI():
+    allArtEntries = pickle.load(open("artEntriesData.p", "rb"))
 
-    # Theme
-    sg.theme('DarkGrey4')
 
     # List of Entries
     entryList_column = [
@@ -249,7 +261,7 @@ def runGUI():
         [sg.Image(key="-ENTRYIMAGE-")],
 
         # Next and Previous buttons, artworkList index
-        [sg.Button("Prev", key="-PREV-", visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
+        [sg.Button("Prev", key="-PREV-",  visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
 
         # Title text
         [sg.Text(key='-TITLE-')],
@@ -341,8 +353,14 @@ def runGUI():
 #########################################
 
 def main():
-    # On run file, runs CSV and GUI
-    runScraper()
+    # Asks user to use stored data or scrape
+    userDialogue()
+    
+    # If user prompts to not use stored data, run scraper
+    if(useStoredData == False):
+        runScraper()
+
+    # Runs GUI
     runGUI()
 
 if __name__ == '__main__':
