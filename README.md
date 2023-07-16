@@ -1,1 +1,1 @@
-# JoJo-Art-Alert
+# JoJos Art Scraper and Viewer
