@@ -1,9 +1,12 @@
 # Scraping
+import lxml # html parser
+import cchardet # character reading
 from bs4 import BeautifulSoup 
 import requests
 
-# Exporting to CSV
+# Exporting to CSV and Pickle module
 import csv
+import pickle
 
 # GUI
 import PySimpleGUI as sg
@@ -59,7 +62,18 @@ class ArtEntry:
     #                                                         -> imgAlt""
     #
 allArtEntries = []
+useStoredData = True # Initialized to use previously stored data 
 
+# Asks user to either 1) use previously stored data 2) rescrape data (which will take several minutes)
+def userDialogue() :
+    # Theme
+    sg.theme('DarkGrey4')
+    
+    choice = sg.popup_yes_no("Do you want to use previously stored data?", "Selecting \"No\" will take several minutes to update all stored entries.", title="JoJo's Art Scraper and Viewer")
+    if (choice == "Yes") :
+        useStoredData = True
+    elif(choice == "No") :
+        useStoredData = False
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -80,15 +94,16 @@ def formatImgList(list) :
 def runScraper() :
     # GET Request
     URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
-    page = requests.get( URL )
+    requests_session = requests.Session()
+    page = requests_session.get( URL )  
 
     # Check for successful status code (200)
     print("Status Code - {}".format(page.status_code))
 
     # HTML Parser
-    soup = BeautifulSoup(page.content, 'html.parser')
-    div = soup.find("div", {"class":"phantom-blood-tabs"})
-    entries = div.find_all("table", {"class":"diamonds volume"})
+    soup = BeautifulSoup(page.text, "lxml")
+    divs = soup.find("div", {"class":"phantom-blood-tabs"})
+    entries = divs.find_all("table", {"class":"diamonds volume"})
 
     # Initialize writer and csv file
     file = open("entries.csv", "w", newline='', encoding='utf-8')
@@ -114,18 +129,37 @@ def runScraper() :
         srcImgObj = Artwork("","")
 
         # Iterates through each subsection and row of csv, and writes to csv with scraped data
-        sectionCounter = 1 # Tracks which subsection/column is being viewed
+        sectionCounter = 1 # Tracks which subsection/column is being viewed (sections are referred to as "volumes" within the html)
         for section in sections :
-
-            
 
             # If on a subsection containing images (1 and 4), scrape image content
             if(sectionCounter == 1 or sectionCounter == 4) :
-                images = section.find_all("img") # Image content is stored within <img> tags
+                thumbnails = section.find_all("a") # href is stored within <a> tags
 
-                for image in images :
-                    src = image.get('src') # Grabs image source-link
-                    alt = image.get('alt') # Grabs image alt text
+                # For every thumbnail image, find full-res webpage and create new 
+                for thumbnail in thumbnails :
+
+                    # Grabs href for full-res image webpage from thumbnail container
+                        # href = /File:ARTORK_NAME
+                    href = thumbnail.get('href') 
+                    newURL = f"https://jojowiki.com{href}" # Appends href to domain to form new url
+
+                    # Temporary HTML parser to scrape full-res image
+                    newRequests_session = requests.Session()
+                    newPage = newRequests_session.get( newURL )  
+                    newSoup = BeautifulSoup(newPage.text, "lxml")
+
+                    # Stores preview image, as full resolution images are too large
+                    media = newSoup.find("div", {"id":"file"}).find("img")
+                    src = media.get('src') # Grabs image source-link
+                    alt = media.get('alt') # Grabs image alt text
+
+                    # -- REPLACE ABOVE CODE FOR FULL-RESOLUTION IMAGES -- #
+                        # WARNING: Images resolution may exceed monitor resolution and GUI will work improperly
+                    #media = newSoup.find("a", {"class":"internal"})
+                    #src = media.get('href') # Grabs image source-link
+                    #alt = media.get('title') # Grabs image alt text
+
 
                     if(sectionCounter == 1) :
                         # Stores in allArtEntries list
@@ -163,6 +197,7 @@ def runScraper() :
 
         # Writes to csv file, formatting the image lists into formatted strings
         writer.writerow([formatImgList(artworkList), date, sourceTitle, formatImgList(sourceImgList)])
+        pickle.dump(allArtEntries, open("artEntriesData.p", "wb"))
 
     file.close()
 
@@ -203,9 +238,8 @@ def returnImgData(url) :
 # --------------- GUI ---------------- #
 
 def runGUI():
+    allArtEntries = pickle.load(open("artEntriesData.p", "rb"))
 
-    # Theme
-    sg.theme('DarkGrey4')
 
     # List of Entries
     entryList_column = [
@@ -227,7 +261,7 @@ def runGUI():
         [sg.Image(key="-ENTRYIMAGE-")],
 
         # Next and Previous buttons, artworkList index
-        [sg.Button("Prev", key="-PREV-", visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
+        [sg.Button("Prev", key="-PREV-",  visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
 
         # Title text
         [sg.Text(key='-TITLE-')],
@@ -319,8 +353,14 @@ def runGUI():
 #########################################
 
 def main():
-    # On run file, runs CSV and GUI
-    runScraper()
+    # Asks user to use stored data or scrape
+    userDialogue()
+    
+    # If user prompts to not use stored data, run scraper
+    if(useStoredData == False):
+        runScraper()
+
+    # Runs GUI
     runGUI()
 
 if __name__ == '__main__':
