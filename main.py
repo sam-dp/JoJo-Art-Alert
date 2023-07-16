@@ -240,6 +240,9 @@ def returnImgData(url) :
 def runGUI():
     allArtEntries = pickle.load(open("artEntriesData.p", "rb"))
 
+    checkBoxes = []
+    checkBoxes.append(sg.Radio("Arts", "faculty", key='arts', enable_events=True,default=True))
+    checkBoxes.append(sg.Radio("Commerce", "faculty", key='comm', enable_events=True))
 
     # List of Entries
     entryList_column = [
@@ -268,6 +271,10 @@ def runGUI():
 
         # Date text
         [sg.Text(key='-DATE-')],
+
+        # Select viewed list
+        [sg.Radio("Artworks", "checkbox", key='-ARTWORKLIST-', enable_events=True,default=True, visible=False), sg.Radio("Source", "checkbox", key='-SOURCELIST-', enable_events=True, visible=False)]
+
         
     ]
 
@@ -287,8 +294,8 @@ def runGUI():
     # Updated variables
     currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
     entryImgindex = 0
-
-
+    
+    
     # --------------- EVENT LOOP ---------------- #
 
     while True :
@@ -304,16 +311,19 @@ def runGUI():
                 # Updates Current viewed entry, and current viewed image url
                 entryImgindex = 0
                 currentEntry = artEntry
+                currentList = currentEntry.artworkList
 
                 # Updates Windows
                 window["-DATE-"].update(f"{currentEntry.date}")
                 window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
-                window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
+                window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
+                window["-ARTWORKLIST-"].update(True, visible=True)
+                window["-SOURCELIST-"].update(False, visible=True)
 
                 # Updates button and artworkList index visibility if artworkList > 1 
-                if(len(currentEntry.artworkList) > 1) :
+                if(len(currentList) > 1) :
                     window["-PREV-"].update(visible=True)
-                    window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}", visible=True)
+                    window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}", visible=True)
                     window["-NEXT-"].update(visible=True)
                 else:
                     window["-PREV-"].update(visible=False)
@@ -326,22 +336,37 @@ def runGUI():
         # Prev in artworkList incrementer
         elif(event == "-PREV-") :
             if(entryImgindex - 1 < 0) :
-                entryImgindex = len(currentEntry.artworkList) - 1
+                entryImgindex = len(currentList) - 1
             else :
                 entryImgindex -= 1
             # Updates image selections and list index
-            window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
-            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}")
+            window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
+            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
 
         # Next in artworkList incrementer
         elif(event == "-NEXT-") :
-            if(entryImgindex + 1 > len(currentEntry.artworkList) - 1) :
+            if(entryImgindex + 1 > len(currentList) - 1) :
                 entryImgindex = 0
             else :
                 entryImgindex += 1
             # Updates image selections and list index
-            window["-ENTRYIMAGE-"].update(returnImgData(currentEntry.artworkList[entryImgindex].imgSrc))
-            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentEntry.artworkList)}")
+            window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
+            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
+        
+        # If Artworks list is selected, display
+        elif(event == "-ARTWORKLIST-"):
+            currentList = currentEntry.artworkList
+            entryImgindex =0
+            window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
+            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
+            
+        
+        # If Source image list is selected, display
+        elif(event == "-SOURCELIST-"):
+            currentList = currentEntry.sourceImgList
+            entryImgindex=0
+            window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
+            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
 
         print(event, values)
     window.close()
