@@ -49,6 +49,8 @@ class ArtEntry:
 
 
 
+
+
 ######################################################
 # --------------- Scraper Functions ---------------- #
 ######################################################
@@ -62,18 +64,15 @@ class ArtEntry:
     #                                                         -> imgAlt""
     #
 allArtEntries = []
-useStoredData = True # Initialized to use previously stored data 
 
 # Asks user to either 1) use previously stored data 2) rescrape data (which will take several minutes)
-def userDialogue() :
+def useScraper() :
     # Theme
     sg.theme('DarkGrey4')
     
     choice = sg.popup_yes_no("Do you want to use previously stored data?", "Selecting \"No\" will take several minutes to update all stored entries.", "", title="JoJo's Art Scraper and Viewer")
-    if (choice == "Yes") :
-        useStoredData = True
-    elif(choice == "No") :
-        useStoredData = False
+    if (choice == "No") :
+        runScraper()
 
 # Formats image lists into multi-line strings for csv formatting:
     # src: <link>
@@ -202,23 +201,22 @@ def runScraper() :
     file.close()
 
 
+
+
+
 #########################################
 # --------------- Main ---------------- #
 #########################################
 
 def main():
     # Asks user to use stored data or scrape
-    userDialogue()
+        # If user prompts to not use stored data, run scraper
+    useScraper()
     
-    # If user prompts to not use stored data, run scraper
-    if(useStoredData == False):
-        runScraper()
-
-    # Runs GUI
-    #runGUI()
-
 if __name__ == '__main__':
     main()
+
+
 
 
 
@@ -274,7 +272,7 @@ entryList_column = [
 
 # Entry Viewer panel
 entryViwer_column = [
-    
+
     # Instruction Text
     [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
 
@@ -292,8 +290,6 @@ entryViwer_column = [
 
     # Select viewed list
     [sg.Radio("Artworks", "checkbox", key='-ARTWORKLIST-', enable_events=True,default=True, visible=False), sg.Radio("Source", "checkbox", key='-SOURCELIST-', enable_events=True, visible=False)]
-
-    
 ]
 
 # Layout
@@ -303,7 +299,6 @@ layout = [
         sg.VSeparator(), 
         sg.Column(entryViwer_column),
     ]
-
 ]
 
 # Window
@@ -414,6 +409,7 @@ while True :
         currentList = currentEntry.sourceImgList
         entryImgindex=0
 
+        # Updates image, index text, and button visibility
         updateImgWindow()
         updateListIndex()
         updateButtonVis()
