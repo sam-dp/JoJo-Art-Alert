@@ -69,7 +69,7 @@ def userDialogue() :
     # Theme
     sg.theme('DarkGrey4')
     
-    choice = sg.popup_yes_no("Do you want to use previously stored data?", "Selecting \"No\" will take several minutes to update all stored entries.", title="JoJo's Art Scraper and Viewer")
+    choice = sg.popup_yes_no("Do you want to use previously stored data?", "Selecting \"No\" will take several minutes to update all stored entries.", "", title="JoJo's Art Scraper and Viewer")
     if (choice == "Yes") :
         useStoredData = True
     elif(choice == "No") :
@@ -202,6 +202,25 @@ def runScraper() :
     file.close()
 
 
+#########################################
+# --------------- Main ---------------- #
+#########################################
+
+def main():
+    # Asks user to use stored data or scrape
+    userDialogue()
+    
+    # If user prompts to not use stored data, run scraper
+    if(useStoredData == False):
+        runScraper()
+
+    # Runs GUI
+    #runGUI()
+
+if __name__ == '__main__':
+    main()
+
+
 
 ##################################################
 # --------------- GUI Functions ---------------- #
@@ -237,182 +256,170 @@ def returnImgData(url) :
 
 # --------------- GUI ---------------- #
 
-def runGUI():
-    allArtEntries = pickle.load(open("artEntriesData.p", "rb"))
+allArtEntries = pickle.load(open("artEntriesData.p", "rb"))
 
-    checkBoxes = []
-    checkBoxes.append(sg.Radio("Arts", "faculty", key='arts', enable_events=True,default=True))
-    checkBoxes.append(sg.Radio("Commerce", "faculty", key='comm', enable_events=True))
+checkBoxes = []
+checkBoxes.append(sg.Radio("Arts", "faculty", key='arts', enable_events=True,default=True))
+checkBoxes.append(sg.Radio("Commerce", "faculty", key='comm', enable_events=True))
 
-    # List of Entries
-    entryList_column = [
-        [
-            sg.Listbox( 
-                allArtEntries, enable_events=True, size=(80, 20), horizontal_scroll=True,
-                key="-ENTRYLIST-"
-            )
-        ],
-    ]
+# List of Entries
+entryList_column = [
+    [
+        sg.Listbox( 
+            allArtEntries, enable_events=True, size=(80, 20), horizontal_scroll=True,
+            key="-ENTRYLIST-"
+        )
+    ],
+]
+
+# Entry Viewer panel
+entryViwer_column = [
     
-    # Entry Viewer panel
-    entryViwer_column = [
-        
-        # Instruction Text
-        [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
+    # Instruction Text
+    [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
 
-        # Image panel
-        [sg.Image(key="-ENTRYIMAGE-")],
+    # Image panel
+    [sg.Image(key="-ENTRYIMAGE-")],
 
-        # Next and Previous buttons, artworkList index
-        [sg.Button("Prev", key="-PREV-",  visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
+    # Next and Previous buttons, artworkList index
+    [sg.Button("Prev", key="-PREV-",  visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
 
-        # Title text
-        [sg.Text(key='-TITLE-')],
+    # Title text
+    [sg.Text(key='-TITLE-')],
 
-        # Date text
-        [sg.Text(key='-DATE-')],
+    # Date text
+    [sg.Text(key='-DATE-')],
 
-        # Select viewed list
-        [sg.Radio("Artworks", "checkbox", key='-ARTWORKLIST-', enable_events=True,default=True, visible=False), sg.Radio("Source", "checkbox", key='-SOURCELIST-', enable_events=True, visible=False)]
+    # Select viewed list
+    [sg.Radio("Artworks", "checkbox", key='-ARTWORKLIST-', enable_events=True,default=True, visible=False), sg.Radio("Source", "checkbox", key='-SOURCELIST-', enable_events=True, visible=False)]
 
-        
-    ]
+    
+]
 
-    # Layout
-    layout = [
-        [
-            sg.Column(entryList_column),
-            sg.VSeparator(), 
-            sg.Column(entryViwer_column),
-        ]
-
+# Layout
+layout = [
+    [
+        sg.Column(entryList_column),
+        sg.VSeparator(), 
+        sg.Column(entryViwer_column),
     ]
 
-    # Window
-    window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
+]
 
-    # Updated variables
-    currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
-    entryImgindex = 0
+# Window
+window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
+
+# Window variables
+entryImgindex = 0
+currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
+currentList = currentEntry.artworkList
+
+
+# --------------- Window Updater Functions ---------------- #
+
+# Updates date text
+def updateDate():
+    window["-DATE-"].update(f"{currentEntry.date}")
+
+# Updates title text
+def updateTitle():
+    window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
+
+# Updates image window
+def updateImgWindow() :
+    window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
+
+# Updates button and artworkList index visibility if artworkList > 1 
+def updateButtonVis():
+    if(len(currentList) > 1) :
+        window["-PREV-"].update(visible=True)
+        window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}", visible=True)
+        window["-NEXT-"].update(visible=True)
+    else:
+        window["-PREV-"].update(visible=False)
+        window["-LISTINDEX-"].update(visible=False)
+        window["-NEXT-"].update(visible=False)
+
+# Defaults checkbox selection
+def updateCheckboxes():
+    window["-ARTWORKLIST-"].update(True, visible=True)
+    window["-SOURCELIST-"].update(False, visible=True)
+
+# Updates list index text
+def updateListIndex():
+    window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")   
+
+
+# --------------- EVENT LOOP ---------------- #
+
+while True :
+    event, values = window.read()
     
-    
-    # --------------- EVENT LOOP ---------------- #
+    # On exit, quit
+    if event == sg.WIN_CLOSED :
+        break
 
-    while True :
-        event, values = window.read()
-        
-        # On exit, quit
-        if event == sg.WIN_CLOSED :
-            break
-
-        # Displays selected artEntry details
-        elif event == "-ENTRYLIST-"  :
-            for artEntry in values['-ENTRYLIST-'] :
-                # Updates Current viewed entry, and current viewed image url
-                entryImgindex = 0
-                currentEntry = artEntry
-                currentList = currentEntry.artworkList
-
-                # Updates Windows
-                window["-DATE-"].update(f"{currentEntry.date}")
-                window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
-                window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
-                window["-ARTWORKLIST-"].update(True, visible=True)
-                window["-SOURCELIST-"].update(False, visible=True)
-
-                # Updates button and artworkList index visibility if artworkList > 1 
-                if(len(currentList) > 1) :
-                    window["-PREV-"].update(visible=True)
-                    window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}", visible=True)
-                    window["-NEXT-"].update(visible=True)
-                else:
-                    window["-PREV-"].update(visible=False)
-                    window["-LISTINDEX-"].update(visible=False)
-                    window["-NEXT-"].update(visible=False)
-
-                # Hides instruction text once an entry has been selected
-                window["-INSTRUCTION-"].update(visible=False)
-
-        # Prev in artworkList incrementer
-        elif(event == "-PREV-") :
-            if(entryImgindex - 1 < 0) :
-                entryImgindex = len(currentList) - 1
-            else :
-                entryImgindex -= 1
-            # Updates image selections and list index
-            window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
-            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
-
-        # Next in artworkList incrementer
-        elif(event == "-NEXT-") :
-            if(entryImgindex + 1 > len(currentList) - 1) :
-                entryImgindex = 0
-            else :
-                entryImgindex += 1
-            # Updates image selections and list index
-            window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
-            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
-        
-        # If Artworks list is selected, display
-        elif(event == "-ARTWORKLIST-"):
+    # Displays selected artEntry details
+    elif event == "-ENTRYLIST-"  :
+        for artEntry in values['-ENTRYLIST-'] :
+            # Defaults index value and currentList for next artEntry
+            entryImgindex = 0
+            currentEntry = artEntry
             currentList = currentEntry.artworkList
-            entryImgindex =0
 
-            window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
-            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
+            # Updates Windows
+            updateDate()
+            updateTitle()
+            updateImgWindow()
+            updateCheckboxes()
+            updateButtonVis()
 
-            # Updates button and artworkList index visibility if artworkList > 1 
-            if(len(currentList) > 1) :
-                window["-PREV-"].update(visible=True)
-                window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}", visible=True)
-                window["-NEXT-"].update(visible=True)
-            else:
-                window["-PREV-"].update(visible=False)
-                window["-LISTINDEX-"].update(visible=False)
-                window["-NEXT-"].update(visible=False)
+            # Hides instruction text once an entry has been selected
+            window["-INSTRUCTION-"].update(visible=False)
 
-            
-        
-        # If Source image list is selected, display
-        elif(event == "-SOURCELIST-"):
-            currentList = currentEntry.sourceImgList
-            entryImgindex=0
+    # Prev in artworkList incrementer
+    elif(event == "-PREV-") :
+        if(entryImgindex - 1 < 0) :
+            entryImgindex = len(currentList) - 1
+        else :
+            entryImgindex -= 1
 
-            window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
-            window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")
+        # Updates image selections and list index
+        updateImgWindow()
+        updateListIndex()
 
-            # Updates button and artworkList index visibility if artworkList > 1 
-            if(len(currentList) > 1) :
-                window["-PREV-"].update(visible=True)
-                window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}", visible=True)
-                window["-NEXT-"].update(visible=True)
-            else:
-                window["-PREV-"].update(visible=False)
-                window["-LISTINDEX-"].update(visible=False)
-                window["-NEXT-"].update(visible=False)
+    # Next in artworkList incrementer
+    elif(event == "-NEXT-") :
+        if(entryImgindex + 1 > len(currentList) - 1) :
+            entryImgindex = 0
+        else :
+            entryImgindex += 1
 
-        print(event, values)
-    window.close()
-
-
-
-#########################################
-# --------------- Main ---------------- #
-#########################################
-
-def main():
-    # Asks user to use stored data or scrape
-    userDialogue()
+        # Updates image and index text
+        updateImgWindow()
+        updateListIndex()
     
-    # If user prompts to not use stored data, run scraper
-    if(useStoredData == False):
-        runScraper()
+    # If Artworks list is selected, display
+    elif(event == "-ARTWORKLIST-"):
+        currentList = currentEntry.artworkList
+        entryImgindex =0
 
-    # Runs GUI
-    runGUI()
+        # Updates image, index text, and button visibility
+        updateImgWindow()
+        updateListIndex()
+        updateButtonVis()
 
-if __name__ == '__main__':
-    main()
+    # If Source image list is selected, display
+    elif(event == "-SOURCELIST-"):
+        currentList = currentEntry.sourceImgList
+        entryImgindex=0
+
+        updateImgWindow()
+        updateListIndex()
+        updateButtonVis()
+
+    print(event, values)
+window.close()
 
 
 
