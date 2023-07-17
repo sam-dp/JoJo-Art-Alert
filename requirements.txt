@@ -1,0 +1,7 @@
+lxml
+cchardet
+bs4
+requests
+csv
+PySimpleGUI
+Pillow
