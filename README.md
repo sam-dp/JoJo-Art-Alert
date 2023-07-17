@@ -37,7 +37,7 @@ Run main.py
 This program utilizes an object-oriented approach, using a nested structure of objects to store scraped data including src links to an artwork, the date of the piece, the source title, and src links to the source images. 
 
 ```
-# PRIMARY DATA STRUCTURE: List of ArtEntry objects containing all scraped art entries and their individual data
+# PRIMARY DATA STRUCTURE: List of ArtEntry objects containing contents of scraped art entries
     #
     # allArtEntries[] -> ArtEntry object -> artworkList[] -> Artwork object -> imgSrc"" 
     #                                    -> date""                          -> imgAlt""
