@@ -7,7 +7,7 @@ I was inspired to create this project because I have long enjoyed Araki's artwor
 ---
 ### Built with
 This application was built using Python 3.10.11 and the following libraries, packages, and modules:
-* [BeautifulSoup4](https://pypi.org/project/bs4/) - Web Scraping
+* [BeautifulSoup4](https://pypi.org/project/beautifulsoup4/) - Web Scraping
 * [requests](https://pypi.org/project/requests/) - HTTP Requests
 * [lxml](https://pypi.org/project/lxml/) - HTML Parser
 * [cchardet](https://pypi.org/project/cchardet/) - Character Detector
