@@ -53,7 +53,7 @@ Each subsection/column of the row is then scraped, where the dates and titles ar
 
 This image-scraping process takes lots of time to complete, as the delay between HTTP requests becomes significant with the 900+ web pages being accessed and scraped. To bypass this issue, Python's ```pickle``` module is used to store the ```ArtEntry``` objects, where the user is prompted to load this previously stored data or rerun the scraper to "refresh" the data. The ```lxml``` and ```cchardet``` packages are used to speed up ```BeautifulSoup4```'s HTML processing time to help compensate for this.
 
-After the scraping is complete ```PySimpleGUI``` is used to give an interactable interface to the user, pulling information from the ArtEntry objects and displaying it using ```PySimpleGUI``` elements. The ```urllib.request``` module is used to open the image links, however, because ```PySimpleGUI``` only natively supports PNG and GIF formats, the ```Pillow``` package and ```io``` module are used to convert any JPG images to PNG so that PSG can render them. 
+After the scraping is complete ```PySimpleGUI``` is used to give an interactable interface to the user, pulling information from the ArtEntry objects and displaying it using ```PySimpleGUI``` elements. The ```urllib.request``` module is used to open the image links, however, because ```PySimpleGUI``` only natively supports PNG and GIF formats, the ```Pillow``` package and ```io``` module are used to convert any JPG images to PNG so that ```PySimpleGUI``` can render them. 
 
 ---
 
