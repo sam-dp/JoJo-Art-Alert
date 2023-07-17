@@ -20,7 +20,7 @@ This application was built using ```Python 3.10.11``` and the following librarie
 * [Pillow](https://pypi.org/project/Pillow/) - Image Conversion and Processing
 ---
 ### Installation and Usage
-Running this program (with a well-supported version of Python installed) should be quite simple after cloning or downloading the repo, simply:
+You must have a well supported-version of Python installed, as well as Microsoft Visual C++ 14.0 for ```cchardet```. Running this program should be quite simple after cloning or downloading the repo, simply:
 
 Use pip to make sure all packages are installed
 
