@@ -5,6 +5,7 @@ Jojos Art Scraper and Viewer is a Web Scraper and Image Viewer that stores and d
 I was inspired to pursue this personal project because I have long enjoyed Araki's artwork for JoJo's Bizarre Adventure and wanted to challenge myself to create something that interacts with the web, handles lots of data, and uses a GUI.
 
 ---
+
 ### Built with
 This application was built using ```Python 3.10.11``` and the following libraries, packages, and modules:
 * [BeautifulSoup4](https://pypi.org/project/beautifulsoup4/) - Web Scraping
@@ -55,3 +56,9 @@ This image-scraping process takes lots of time to complete, as the delay between
 After the scraping is complete ```PySimpleGUI``` is used to give an interactable interface to the user, pulling information from the ArtEntry objects and displaying it using ```PySimpleGUI``` elements. The ```urllib.request``` module is used to open the image links, however, because ```PySimpleGUI``` only natively supports PNG and GIF formats, the ```Pillow``` package and ```io``` module are used to convert any JPG images to PNG so that PSG can render them. 
 
 ---
+
+### Preview
+![JoJosArtScraperandViewer](https://github.com/sam-dp/JoJos-Art-Scraper-and-Viewer/assets/67991792/4896ae18-b943-4a18-9309-e6042d7c134d)
+
+---
+
