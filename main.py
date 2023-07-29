@@ -98,6 +98,11 @@ def runScraper() :
 
     # Check for successful status code (200)
     print("Status Code - {}".format(page.status_code))
+    if(page.status_code == 200) :
+        print("Successful Connection")
+    else :
+        print("Unsuccessful Connection")
+     
 
     # HTML Parser
     soup = BeautifulSoup(page.text, "lxml")
@@ -230,7 +235,7 @@ def openUrl(src) :
         req = urllib.request.Request(src, headers={'User-Agent' : "Magic Browser"}) 
         return urllib.request.urlopen(req)
     except:
-        print(f"Error encountered in openUrl() with src: \'{src}\'")
+         print(f"Error encountered in openUrl() with src: \'{src}\'")
 
 # Returns image value for EntryImage depending on img type (PNG or JPG)
 def returnImgData(url) :
@@ -414,7 +419,7 @@ while True :
         updateListIndex()
         updateButtonVis()
 
-    print(event, values)
+    #print(event, values)
 window.close()
 
 
