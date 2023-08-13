@@ -2,6 +2,8 @@
 
 Jojos Art Scraper and Viewer is a Web Scraper and Image Viewer that stores and displays the [archived artworks](https://jojowiki.com/Art_Gallery) of artist and mangaka Hirohiko Araki, most known for his franchise, JoJo's Bizarre Adventure. The user can choose between using a previously-populated data structure or running the scraper to get the most up-to-date gallery, the user then can view every archived artwork from the artist in an image viewer. The program also writes all data to a CSV file for other possible uses.
 
+All artwork content is sourced from the [JoJo's Bizarre Encyclopedia - JoJo Wiki](https://jojowiki.com/Art_Gallery) website.
+
 ---
 
 ### Built with
